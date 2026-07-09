@@ -19,13 +19,13 @@ from urllib.parse import urlparse
 DEFAULT_HOST = "https://uniparser.dp.tech"
 INSTALL_CMD = "git+https://github.com/dptech-corp/UniParser-Tools.git"
 SKILL_ROOT = Path(__file__).resolve().parents[1]
-CONFIG_PATH = SKILL_ROOT / "config.json"
+LOCAL_ENV_PATH = SKILL_ROOT / ".env"
 
 POLL_INTERVAL_SEC = 3
 POLL_TIMEOUT_SEC = 1800
 
 PENDING_STATUSES = frozenset({"undefined", "waiting", "processing"})
-API_KEY_CONFIG_FIELDS = ("api_key", "UNIPARSER_API_KEY", "uniparser_api_key")
+API_KEY_ENV_FIELDS = ("UNIPARSER_API_KEY", "api_key", "uniparser_api_key")
 API_KEY_PLACEHOLDERS = frozenset({"", "your-api-key", "your_api_key", "replace-me", "replace_me"})
 
 DATA_IMAGE_MD_RE = re.compile(
@@ -90,15 +90,31 @@ def _usable_api_key(value: Any) -> str | None:
     return key or None
 
 
-def _load_local_config() -> tuple[dict[str, Any], str | None]:
-    if not CONFIG_PATH.exists():
+def _load_local_env() -> tuple[dict[str, str], str | None]:
+    if not LOCAL_ENV_PATH.exists():
         return {}, None
-    try:
-        data = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
-    except json.JSONDecodeError as exc:
-        return {}, f"Invalid JSON in local config file {CONFIG_PATH}: {exc}"
-    if not isinstance(data, dict):
-        return {}, f"Local config file {CONFIG_PATH} must contain a JSON object."
+
+    data: dict[str, str] = {}
+    for line_number, line in enumerate(LOCAL_ENV_PATH.read_text(encoding="utf-8").splitlines(), start=1):
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        if stripped.startswith("export "):
+            stripped = stripped[len("export ") :].lstrip()
+        if "=" not in stripped:
+            return {}, f"Invalid .env line {line_number} in {LOCAL_ENV_PATH}: expected KEY=VALUE."
+
+        key, value = stripped.split("=", 1)
+        key = key.strip()
+        if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", key):
+            return {}, f"Invalid .env key on line {line_number} in {LOCAL_ENV_PATH}: {key!r}."
+
+        value = value.strip()
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in ("'", '"'):
+            value = value[1:-1]
+        elif " #" in value:
+            value = value.split(" #", 1)[0].rstrip()
+        data[key] = value
     return data, None
 
 
@@ -107,13 +123,13 @@ def resolve_api_key() -> tuple[str | None, str | None, str | None]:
     if env_key:
         return env_key, "environment variable UNIPARSER_API_KEY", None
 
-    config, error = _load_local_config()
+    config, error = _load_local_env()
     if error:
         return None, None, error
-    for field in API_KEY_CONFIG_FIELDS:
+    for field in API_KEY_ENV_FIELDS:
         config_key = _usable_api_key(config.get(field))
         if config_key:
-            return config_key, f"local config {CONFIG_PATH.name}:{field}", None
+            return config_key, f"local {LOCAL_ENV_PATH.name}:{field}", None
     return None, None, None
 
 
@@ -136,8 +152,8 @@ def check_api_key() -> int | None:
     if key:
         return None
     return config_error(
-        "UNIPARSER_API_KEY is not set and local config.json has no usable api_key. "
-        "Set the environment variable first, or fill this skill's config.json as a fallback."
+        "UNIPARSER_API_KEY is not set and local .env has no usable API key. "
+        "Set the environment variable first, or fill this skill's .env as a fallback."
     )
 
 

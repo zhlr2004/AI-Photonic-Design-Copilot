@@ -26,9 +26,9 @@ python -c "import uniparser_tools; print('ok')"
 API key lookup order:
 
 1. Environment variable `UNIPARSER_API_KEY`
-2. This skill's local `config.json` field `api_key`
+2. This skill's local `.env` file
 
-Prefer the environment variable. Use `config.json` only when the environment is unavailable in the current session.
+Prefer the environment variable. Use `.env` only when the environment is unavailable in the current session.
 
 Windows PowerShell:
 
@@ -38,10 +38,8 @@ $env:UNIPARSER_API_KEY="your-api-key"
 
 Local fallback:
 
-```json
-{
-  "api_key": "your-api-key"
-}
+```dotenv
+UNIPARSER_API_KEY=your-api-key
 ```
 
 ## Usage
@@ -110,7 +108,7 @@ On failure, read stderr JSON `error.message`.
 
 | Problem | Cause | Solution |
 |---------|-------|----------|
-| `CONFIG_ERROR` | Missing API key or missing package | Set `UNIPARSER_API_KEY`, or fill local `config.json`; install UniParser-Tools |
+| `CONFIG_ERROR` | Missing API key or missing package | Set `UNIPARSER_API_KEY`, or fill local `.env`; install UniParser-Tools |
 | `DIR_EXISTS` | Output directory already exists | Re-run with `--overwrite` after user confirmation |
 | `Token is duplicated` | Same API key and input were already submitted | Use `scripts/fetch_by_token.py` with the same input flag or token |
 | Long wait / interrupted CLI | Server job may still be running | Re-run `fetch_by_token.py`; do not submit the same input again |

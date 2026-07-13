@@ -68,13 +68,14 @@ Draft a plan in `reproduction/plan.md`:
 | Compute Script | `reproduction/fig3c_compute.py`, `reproduction/fig4c_compute.py` |
 | Plot Script | `reproduction/fig3c_plot.py`, `reproduction/fig4c_plot.py` |
 | Simulation Files | `data/fig3c_1.fsp` through `data/fig3c_9.fsp`; `data/fig4c_1.fsp` through `data/fig4c_9.fsp` |
+| Test Simulation Files | The program may create `test/` to store temporary or exploratory `.fsp` files used while validating geometry, sources, mesh settings, or monitor exports. These files are not final deliverables. |
 | Per-subfigure PNG | `data/fig3c_1.png` through `data/fig3c_9.png`; `data/fig4c_1.png` through `data/fig4c_9.png` |
 | Per-subfigure CSV | Matching per-subfigure CSV files directly under `data/`, e.g., `data/fig3c_1.csv`, `data/fig3c_9.csv`, `data/fig4c_1.csv`, `data/fig4c_9.csv` |
 
 
 
 ### Step 5: Generate Data Files
-Run your scripts to produce the eighteen `.fsp` files listed above, per-subfigure reproduced `.png` files, and per-subfigure plotting `.csv` data files directly under `data/` with no nested output folders. The electromagnetic-field PNG and CSV files must be generated from FDTD monitor data exported through `lumapi`. Any SHG near-field, far-field, vortex profile, and interference pattern must be derived from the FDTD-exported electromagnetic fields. See Section 5 for exact specifications.
+Run your scripts to produce the eighteen final `.fsp` files listed above, per-subfigure reproduced `.png` files, and per-subfigure plotting `.csv` data files directly under `data/` with no nested output folders. The program may also create `test/` for non-deliverable test `.fsp` files used during simulation setup and validation. The electromagnetic-field PNG and CSV files must be generated from FDTD monitor data exported through `lumapi`. Any SHG near-field, far-field, vortex profile, and interference pattern must be derived from the FDTD-exported electromagnetic fields. See Section 5 for exact specifications.
 
 ### Step 5: The "Anti-Cheat" Audit & Consistency Check
 *Self-Correction before finalizing:*

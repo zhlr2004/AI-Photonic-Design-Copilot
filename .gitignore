@@ -19,6 +19,9 @@ env/
 *.key
 *.pem
 
+# Local example outputs
+exampleinstructions/
+
 # OS/editor noise
 .DS_Store
 Thumbs.db

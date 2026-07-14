@@ -1,0 +1,18 @@
+schema_id: ToolManifest
+schema_version: "1.0"
+id: free-design-intake
+version: 1.0.0
+kind: workflow
+capabilities:
+  - requirement_intake
+  - example_search
+  - simulation_contract_drafting
+input_schema: schemas/v1/contracts.schema.json#/$defs/WorkflowRequest
+output_schemas:
+  - schemas/v1/contracts.schema.json#/$defs/SimulationContract
+execution:
+  type: agent_skill
+  entrypoint: free-design-intake/SKILL.md
+  requires_human_approval: false
+  timeout_seconds: 1800
+solver_capability:

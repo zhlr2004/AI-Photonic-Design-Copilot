@@ -1,0 +1,19 @@
+schema_id: ToolManifest
+schema_version: "1.0"
+id: example-library
+version: 1.0.0
+kind: service
+capabilities:
+  - example_search
+  - example_candidate_staging
+  - reviewed_example_publication
+input_schema: schemas/v1/contracts.schema.json#/$defs/SimulationContract
+output_schemas:
+  - schemas/v1/contracts.schema.json#/$defs/ExampleManifest
+  - schemas/v1/contracts.schema.json#/$defs/ExampleCandidate
+execution:
+  type: python
+  entrypoint: photonic_copilot.example_library:ExampleLibrary
+  requires_human_approval: true
+  timeout_seconds: 300
+solver_capability:

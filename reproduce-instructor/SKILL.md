@@ -25,20 +25,28 @@ Read these before drafting:
 2. [`preferred-simulators.md`](preferred-simulators.md) for preferred simulation
    software/libraries, method-to-task guidance, and admission criteria for
    another tool.
-3. [`../paper-reproduction-prep/SKILL.md`](../paper-reproduction-prep/SKILL.md)
-   for paper and figure analysis practices.
-4. [`../paper-reproduction-prep/examples/instruction-example_0.md`](../paper-reproduction-prep/examples/instruction-example_0.md)
-   for the current strict instruction style.
-5. Inspect [`../exampleinstructions/`](../exampleinstructions/) and select the
-   closest paper/task example. Treat older tool-specific or inconsistent
-   requirements as examples, not mandatory wording.
-6. For PDF conversion, read
+3. [`../schemas/README.md`](../schemas/README.md) and
+   [`../schemas/v1/contracts.schema.json`](../schemas/v1/contracts.schema.json)
+   for the machine-readable `PaperManifest`, `Evidence`, `Targets`, and
+   `SimulationContract` boundaries.
+4. Query the external Example Library when it is configured. Treat retrieved
+   examples as versioned suggestions, never as paper evidence or mandatory
+   wording.
+5. For PDF conversion, read
    [`../UniParser-Paper-Markdown/SKILL.md`](../UniParser-Paper-Markdown/SKILL.md)
    and use its bundled scripts rather than writing an ad hoc parser.
 
 ## Output Contract
 
 - Write the final file as `<task-root>/instruction.md`.
+- Also write the following V1 documents and validate each against
+  `../schemas/v1/contracts.schema.json`:
+  - `<task-root>/evidence.json` as `Evidence`;
+  - `<task-root>/targets.json` as `Targets`;
+  - `<task-root>/simulation-contract.json` as `SimulationContract`.
+- Keep `instruction.md` as the human-readable view. The JSON documents are the
+  machine interface used by the Planner and solver adapters; do not maintain
+  conflicting values in both places.
 - Keep the source PDF (when supplied), primary paper Markdown, and `images/` in
   `<task-root>`. PDF conversion performed by this skill must produce all three
   in that directory.
@@ -48,6 +56,8 @@ Read these before drafting:
   replacement.
 - Keep edits within `<task-root>` except when reading this skill and its
   references or using a temporary conversion directory.
+- Never write directly to the published Example Library. A completed run may
+  only create an `ExampleCandidate`; publication requires result review.
 
 ## Workflow
 
@@ -162,7 +172,26 @@ current paper. A tool outside the preferred list is allowed when the instruction
 documents why it is a better technical fit and meets the list's admission
 criteria.
 
-### 6. Draft `instruction.md`
+### 6. Emit the machine-readable contracts
+
+Write `evidence.json`, `targets.json`, and `simulation-contract.json` before the
+human-readable instruction:
+
+- Give every extracted parameter a stable `parameter_id`.
+- Use exactly one evidence status: `specified`, `literature`,
+  `example_suggestion`, `assumption`, or `unknown`.
+- Preserve paper locations and retrieved example IDs/versions as provenance.
+- Include proposed mesh/PML/run-control convergence cases even if the user may
+  later opt out of executing them.
+- Keep requested observables in both `objective.observables` and
+  `outputs.raw`/`outputs.derived`.
+- Do not proceed with an unaccepted assumption that changes physical
+  interpretation.
+
+Validate all three documents with the V1 schema catalog. Correct the documents
+rather than weakening the schema.
+
+### 7. Draft `instruction.md`
 
 Start from [`examples/instruction-template.md`](examples/instruction-template.md),
 then adapt the closest paper-specific reference instead of copying it blindly.
@@ -233,7 +262,7 @@ Additional native raw data such as HDF5, VTK, MAT, or solver result databases ma
 also be required. Keep final artifacts directly under `data/` unless the user
 requests another layout.
 
-### 7. Define validation honestly
+### 8. Define validation honestly
 
 - Use a numerical error threshold only when the paper or supplied target data
   supports it.
@@ -271,6 +300,10 @@ labeled separately from simulated output.
 Before finishing:
 
 - confirm `instruction.md` is in the task root and names the real paper file;
+- confirm `evidence.json`, `targets.json`, and `simulation-contract.json` exist
+  and pass their V1 schemas;
+- confirm the instruction and JSON documents contain no conflicting parameter,
+  target, assumption, or validation values;
 - verify every target panel appears consistently in workflow, filenames,
   validation, and deliverables;
 - search for stale titles, figures, physics, software, API names, and extensions

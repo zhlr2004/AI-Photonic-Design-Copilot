@@ -1,0 +1,20 @@
+schema_id: ToolManifest
+schema_version: "1.0"
+id: fdtd-result-validation
+version: 1.0.0
+kind: analysis
+capabilities:
+  - canonical_field_mapping
+  - finite_value_validation
+  - rt_energy_balance
+  - convergence_comparison
+  - cross_solver_comparison
+input_schema: schemas/v1/contracts.schema.json#/$defs/RunManifest
+output_schemas:
+  - schemas/v1/contracts.schema.json#/$defs/ValidationReport
+execution:
+  type: cli
+  entrypoint: fdtd-core/scripts/validate_results.py
+  requires_human_approval: false
+  timeout_seconds: 600
+solver_capability:

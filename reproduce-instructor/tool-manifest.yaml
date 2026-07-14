@@ -1,0 +1,20 @@
+schema_id: ToolManifest
+schema_version: "1.0"
+id: paper-reproduction-instructor
+version: 1.0.0
+kind: workflow
+capabilities:
+  - paper_evidence_extraction
+  - reproduction_target_selection
+  - simulation_contract_drafting
+input_schema: schemas/v1/contracts.schema.json#/$defs/PaperManifest
+output_schemas:
+  - schemas/v1/contracts.schema.json#/$defs/Evidence
+  - schemas/v1/contracts.schema.json#/$defs/Targets
+  - schemas/v1/contracts.schema.json#/$defs/SimulationContract
+execution:
+  type: agent_skill
+  entrypoint: reproduce-instructor/SKILL.md
+  requires_human_approval: false
+  timeout_seconds: 1800
+solver_capability:

@@ -1,0 +1,143 @@
+{
+  "schema_id": "SimulationContract",
+  "schema_version": "1.0",
+  "contract_id": "benchmark-waveguide-bend-rt-v1",
+  "origin": "free_design",
+  "objective": {
+    "description": "Calculate broadband reflection and transmission of a two-dimensional 90-degree dielectric waveguide bend.",
+    "observables": [
+      "reflectance",
+      "transmittance"
+    ],
+    "acceptance": {
+      "lossless_rt_tolerance": 0.05,
+      "convergence_relative_tolerance": 0.03
+    }
+  },
+  "physics": {
+    "dimensionality": "2d",
+    "coordinate_system": "cartesian",
+    "geometry": [
+      {
+        "id": "input_waveguide",
+        "type": "block",
+        "width_m": 1e-06
+      },
+      {
+        "id": "output_waveguide",
+        "type": "block",
+        "width_m": 1e-06,
+        "bend_angle_deg": 90
+      }
+    ],
+    "materials": [
+      {
+        "id": "core",
+        "model": "constant_permittivity",
+        "relative_permittivity": 12.0,
+        "valid_for": "benchmark only"
+      },
+      {
+        "id": "background",
+        "model": "constant_index",
+        "refractive_index": 1.0
+      }
+    ],
+    "sources": [
+      {
+        "id": "input_source",
+        "type": "broadband_mode_or_equivalent",
+        "wavelength_start_m": 1.5e-06,
+        "wavelength_stop_m": 1.6e-06,
+        "polarization": "2d_te"
+      }
+    ],
+    "boundaries": {
+      "x": "pml",
+      "y": "pml"
+    },
+    "monitors": [
+      {
+        "id": "reflection",
+        "observable": "reflectance"
+      },
+      {
+        "id": "transmission",
+        "observable": "transmittance"
+      }
+    ]
+  },
+  "numerics": {
+    "mesh": {
+      "resolution": 20,
+      "accuracy": 2
+    },
+    "pml": {
+      "thickness": 1.0,
+      "layers": 8
+    },
+    "run_control": {
+      "decay_by": 1e-06,
+      "auto_shutoff_min": 1e-05,
+      "maximum_time": 2000
+    },
+    "convergence_cases": [
+      {
+        "kind": "mesh",
+        "values": [
+          20,
+          30
+        ]
+      },
+      {
+        "kind": "pml",
+        "values": [
+          1.0,
+          1.5
+        ]
+      },
+      {
+        "kind": "run_control",
+        "values": [
+          1e-05,
+          1e-06
+        ]
+      }
+    ]
+  },
+  "resources": {
+    "max_memory_gb": 8,
+    "max_runtime_seconds": 3600,
+    "cpu_cores": 4,
+    "license_limits": {
+      "lumerical_fdtd_seats": 1
+    }
+  },
+  "outputs": {
+    "raw": [
+      "reflectance",
+      "transmittance"
+    ],
+    "derived": [
+      "balance_error"
+    ],
+    "plots": [
+      "rt_spectrum"
+    ]
+  },
+  "validation": {
+    "checks": [
+      "finite_values",
+      "wavelength_axis",
+      "lossless_rt_balance",
+      "mesh_convergence",
+      "pml_convergence",
+      "run_control_convergence"
+    ],
+    "tolerances": {
+      "lossless_rt_balance": 0.05,
+      "relative_change": 0.03
+    }
+  },
+  "assumptions": []
+}

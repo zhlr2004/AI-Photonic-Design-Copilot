@@ -1,0 +1,42 @@
+schema_id: SolverCapability
+schema_version: "1.0"
+solver_id: solver-meep
+method: fdtd
+dimensions:
+  - 1d
+  - 2d
+  - 3d
+  - cylindrical
+coordinate_systems:
+  - cartesian
+  - cylindrical
+observables:
+  - field_e
+  - field_h
+  - reflectance
+  - transmittance
+  - mode_coefficients
+  - q_factor
+  - far_field
+materials:
+  - nondispersive
+  - dispersive
+  - lossy
+  - anisotropic
+  - nonlinear
+boundaries:
+  - pml
+  - periodic
+  - bloch
+  - metallic
+  - symmetry
+native_artifacts:
+  - python
+  - npz
+  - json
+  - hdf5
+parallel:
+  mpi: true
+  independent_jobs: true
+limitations:
+  - Default runtime requires Linux or WSL with a compatible PyMeep environment.

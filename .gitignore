@@ -1,5 +1,6 @@
 # Python cache and build artifacts
 __pycache__/
+.pytest_cache/
 *.py[cod]
 *.pyo
 *.pyd
@@ -21,6 +22,10 @@ env/
 
 # Local example outputs
 exampleinstructions/
+
+# Local design drafts
+Design1.0.md
+Design2.0.md
 
 # OS/editor noise
 .DS_Store

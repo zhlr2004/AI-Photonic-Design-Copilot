@@ -1,0 +1,44 @@
+schema_id: SolverCapability
+schema_version: "1.0"
+solver_id: solver-lumerical-fdtd
+method: fdtd
+dimensions:
+  - 2d
+  - 2.5d
+  - 3d
+coordinate_systems:
+  - cartesian
+observables:
+  - field_e
+  - field_h
+  - reflectance
+  - transmittance
+  - mode_coefficients
+  - q_factor
+  - far_field
+materials:
+  - material_database
+  - imported_nk
+  - dispersive
+  - lossy
+  - anisotropic
+  - nonlinear
+boundaries:
+  - pml
+  - periodic
+  - bloch
+  - metallic
+  - symmetry
+native_artifacts:
+  - python
+  - lsf
+  - fsp
+  - npz
+  - json
+  - csv
+parallel:
+  mpi: false
+  independent_jobs: true
+limitations:
+  - Requires an installed Ansys Lumerical release and a valid FDTD license.
+  - API and object properties can vary by installed release.

@@ -1,0 +1,22 @@
+schema_id: ToolManifest
+schema_version: "1.0"
+id: solver-meep
+version: 1.0.0
+kind: solver
+capabilities:
+  - fdtd_simulation
+  - field_distribution
+  - reflection_transmission
+  - modal_analysis
+  - resonance_analysis
+  - far_field
+input_schema: schemas/v1/contracts.schema.json#/$defs/SimulationContract
+output_schemas:
+  - schemas/v1/contracts.schema.json#/$defs/RunManifest
+  - schemas/v1/contracts.schema.json#/$defs/ValidationReport
+execution:
+  type: worker
+  entrypoint: photonic_copilot.adapters:MeepSolverAdapter
+  requires_human_approval: true
+  timeout_seconds: 86400
+solver_capability: solver-capability.yaml

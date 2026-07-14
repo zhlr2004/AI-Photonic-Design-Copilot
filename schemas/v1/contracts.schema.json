@@ -1,0 +1,680 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://optiquasiparticle.local/schemas/v1/contracts.schema.json",
+  "title": "AI Photonic Design Copilot V1 contracts",
+  "$ref": "#/$defs/ContractDocument",
+  "$defs": {
+    "SchemaHeader": {
+      "type": "object",
+      "required": ["schema_id", "schema_version"],
+      "properties": {
+        "schema_id": {"type": "string", "minLength": 1},
+        "schema_version": {"const": "1.0"}
+      }
+    },
+    "ArtifactRef": {
+      "type": "object",
+      "required": ["uri", "kind"],
+      "properties": {
+        "uri": {"type": "string", "minLength": 1},
+        "kind": {"enum": ["file", "directory", "inline", "database"]},
+        "sha256": {"type": "string", "pattern": "^[a-fA-F0-9]{64}$"},
+        "mime_type": {"type": "string"},
+        "size_bytes": {"type": "integer", "minimum": 0},
+        "label": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "Quantity": {
+      "type": "object",
+      "required": ["value", "unit"],
+      "properties": {
+        "value": {
+          "oneOf": [
+            {"type": "number"},
+            {"type": "array", "items": {"type": "number"}, "minItems": 1},
+            {"type": "string"}
+          ]
+        },
+        "unit": {"type": "string", "minLength": 1},
+        "uncertainty": {"type": "number", "minimum": 0}
+      },
+      "additionalProperties": false
+    },
+    "Provenance": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "enum": [
+            "paper",
+            "literature",
+            "example",
+            "user",
+            "agent_assumption",
+            "solver"
+          ]
+        },
+        "reference": {"type": "string"},
+        "page": {"type": ["integer", "null"], "minimum": 1},
+        "section": {"type": ["string", "null"]},
+        "figure": {"type": ["string", "null"]},
+        "example_id": {"type": ["string", "null"]},
+        "example_version": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    },
+    "WorkflowRequest": {
+      "allOf": [{"$ref": "#/$defs/SchemaHeader"}],
+      "type": "object",
+      "required": ["schema_id", "schema_version", "workflow_id", "mode", "input_refs"],
+      "properties": {
+        "schema_id": {"const": "WorkflowRequest"},
+        "schema_version": {"const": "1.0"},
+        "workflow_id": {"type": "string", "minLength": 1},
+        "mode": {"enum": ["paper_reproduction", "free_design"]},
+        "input_refs": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/ArtifactRef"},
+          "minItems": 1
+        },
+        "requested_solver": {"type": ["string", "null"]},
+        "user_constraints": {"type": "object"},
+        "created_at": {"type": "string", "format": "date-time"}
+      },
+      "additionalProperties": false
+    },
+    "PaperManifest": {
+      "type": "object",
+      "required": [
+        "schema_id",
+        "schema_version",
+        "paper_id",
+        "markdown",
+        "images",
+        "source"
+      ],
+      "properties": {
+        "schema_id": {"const": "PaperManifest"},
+        "schema_version": {"const": "1.0"},
+        "paper_id": {"type": "string", "minLength": 1},
+        "title": {"type": ["string", "null"]},
+        "authors": {"type": "array", "items": {"type": "string"}},
+        "doi": {"type": ["string", "null"]},
+        "source": {"$ref": "#/$defs/ArtifactRef"},
+        "markdown": {"$ref": "#/$defs/ArtifactRef"},
+        "images": {"$ref": "#/$defs/ArtifactRef"},
+        "supplements": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/ArtifactRef"}
+        },
+        "conversion": {
+          "type": ["object", "null"],
+          "properties": {
+            "tool": {"type": "string"},
+            "version": {"type": ["string", "null"]},
+            "warnings": {"type": "array", "items": {"type": "string"}}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "EvidenceEntry": {
+      "type": "object",
+      "required": ["parameter_id", "status", "provenance"],
+      "properties": {
+        "parameter_id": {"type": "string", "minLength": 1},
+        "value": {},
+        "unit": {"type": ["string", "null"]},
+        "status": {
+          "enum": [
+            "specified",
+            "literature",
+            "example_suggestion",
+            "assumption",
+            "unknown"
+          ]
+        },
+        "provenance": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/Provenance"},
+          "minItems": 1
+        },
+        "assumption_basis": {"type": ["string", "null"]},
+        "physical_consequence": {"type": ["string", "null"]},
+        "accepted_by": {"type": ["string", "null"]},
+        "accepted_at": {"type": ["string", "null"], "format": "date-time"}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"status": {"const": "assumption"}}},
+          "then": {
+            "required": ["assumption_basis", "physical_consequence"],
+            "properties": {
+              "assumption_basis": {"type": "string", "minLength": 1},
+              "physical_consequence": {"type": "string", "minLength": 1}
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "Evidence": {
+      "type": "object",
+      "required": ["schema_id", "schema_version", "evidence_id", "entries"],
+      "properties": {
+        "schema_id": {"const": "Evidence"},
+        "schema_version": {"const": "1.0"},
+        "evidence_id": {"type": "string", "minLength": 1},
+        "paper_id": {"type": ["string", "null"]},
+        "entries": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/EvidenceEntry"}
+        }
+      },
+      "additionalProperties": false
+    },
+    "TargetPanel": {
+      "type": "object",
+      "required": [
+        "basename",
+        "figure_id",
+        "observable",
+        "reproduction_type",
+        "validation"
+      ],
+      "properties": {
+        "basename": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$"},
+        "figure_id": {"type": "string", "minLength": 1},
+        "panel_id": {"type": ["string", "null"]},
+        "observable": {"type": "string", "minLength": 1},
+        "reproduction_type": {
+          "enum": ["direct_simulation", "experimental_only", "measurement_model_required"]
+        },
+        "reference": {
+          "oneOf": [
+            {"$ref": "#/$defs/ArtifactRef"},
+            {"type": "null"}
+          ]
+        },
+        "validation": {
+          "type": "object",
+          "required": ["method"],
+          "properties": {
+            "method": {"enum": ["quantitative", "visual", "physical_only"]},
+            "tolerance": {"type": ["number", "null"], "minimum": 0},
+            "allowed_transforms": {
+              "type": "array",
+              "items": {"type": "string"}
+            }
+          },
+          "additionalProperties": false
+        },
+        "deliverables": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
+    "Targets": {
+      "type": "object",
+      "required": ["schema_id", "schema_version", "targets_id", "panels"],
+      "properties": {
+        "schema_id": {"const": "Targets"},
+        "schema_version": {"const": "1.0"},
+        "targets_id": {"type": "string", "minLength": 1},
+        "paper_id": {"type": ["string", "null"]},
+        "panels": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/TargetPanel"},
+          "minItems": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "Assumption": {
+      "type": "object",
+      "required": ["parameter_id", "reason", "consequence", "accepted"],
+      "properties": {
+        "parameter_id": {"type": "string"},
+        "reason": {"type": "string"},
+        "consequence": {"type": "string"},
+        "accepted": {"type": "boolean"},
+        "accepted_by": {"type": ["string", "null"]},
+        "evidence_id": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    },
+    "SimulationContract": {
+      "type": "object",
+      "required": [
+        "schema_id",
+        "schema_version",
+        "contract_id",
+        "origin",
+        "objective",
+        "physics",
+        "numerics",
+        "resources",
+        "outputs",
+        "validation",
+        "assumptions"
+      ],
+      "properties": {
+        "schema_id": {"const": "SimulationContract"},
+        "schema_version": {"const": "1.0"},
+        "contract_id": {"type": "string", "minLength": 1},
+        "origin": {"enum": ["paper_reproduction", "free_design"]},
+        "objective": {
+          "type": "object",
+          "required": ["description", "observables"],
+          "properties": {
+            "description": {"type": "string", "minLength": 1},
+            "observables": {
+              "type": "array",
+              "items": {"type": "string"},
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "acceptance": {"type": "object"}
+          },
+          "additionalProperties": false
+        },
+        "physics": {
+          "type": "object",
+          "required": [
+            "dimensionality",
+            "coordinate_system",
+            "geometry",
+            "materials",
+            "sources",
+            "boundaries",
+            "monitors"
+          ],
+          "properties": {
+            "dimensionality": {"enum": ["1d", "2d", "2.5d", "3d", "cylindrical"]},
+            "coordinate_system": {"enum": ["cartesian", "cylindrical"]},
+            "geometry": {"type": "array", "items": {"type": "object"}},
+            "materials": {"type": "array", "items": {"type": "object"}},
+            "sources": {"type": "array", "items": {"type": "object"}, "minItems": 1},
+            "boundaries": {"type": "object"},
+            "monitors": {"type": "array", "items": {"type": "object"}, "minItems": 1}
+          },
+          "additionalProperties": false
+        },
+        "numerics": {
+          "type": "object",
+          "required": ["mesh", "pml", "run_control", "convergence_cases"],
+          "properties": {
+            "mesh": {"type": "object"},
+            "pml": {"type": "object"},
+            "run_control": {"type": "object"},
+            "convergence_cases": {
+              "type": "array",
+              "items": {"type": "object"},
+              "minItems": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        "resources": {
+          "type": "object",
+          "properties": {
+            "max_memory_gb": {"type": ["number", "null"], "exclusiveMinimum": 0},
+            "max_runtime_seconds": {"type": ["integer", "null"], "minimum": 1},
+            "cpu_cores": {"type": ["integer", "null"], "minimum": 1},
+            "license_limits": {"type": ["object", "null"]}
+          },
+          "additionalProperties": false
+        },
+        "outputs": {
+          "type": "object",
+          "required": ["raw", "derived", "plots"],
+          "properties": {
+            "raw": {"type": "array", "items": {"type": "string"}},
+            "derived": {"type": "array", "items": {"type": "string"}},
+            "plots": {"type": "array", "items": {"type": "string"}}
+          },
+          "additionalProperties": false
+        },
+        "validation": {
+          "type": "object",
+          "required": ["checks", "tolerances"],
+          "properties": {
+            "checks": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+            "tolerances": {"type": "object"}
+          },
+          "additionalProperties": false
+        },
+        "assumptions": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/Assumption"}
+        },
+        "evidence_ref": {"type": ["string", "null"]},
+        "targets_ref": {"type": ["string", "null"]},
+        "example_references": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["example_id", "version", "reused_fields"],
+            "properties": {
+              "example_id": {"type": "string"},
+              "version": {"type": "string"},
+              "quality": {"enum": ["archived", "executed", "validated", "reviewed"]},
+              "similarity_reason": {"type": "string"},
+              "reused_fields": {"type": "array", "items": {"type": "string"}},
+              "transforms": {"type": "array", "items": {"type": "object"}}
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "ToolManifest": {
+      "type": "object",
+      "required": [
+        "schema_id",
+        "schema_version",
+        "id",
+        "version",
+        "kind",
+        "capabilities",
+        "input_schema",
+        "output_schemas",
+        "execution"
+      ],
+      "properties": {
+        "schema_id": {"const": "ToolManifest"},
+        "schema_version": {"const": "1.0"},
+        "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$"},
+        "version": {"type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$"},
+        "kind": {"enum": ["workflow", "solver", "analysis", "service", "utility"]},
+        "capabilities": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+        "input_schema": {"type": "string", "minLength": 1},
+        "output_schemas": {"type": "array", "items": {"type": "string"}},
+        "execution": {
+          "type": "object",
+          "required": ["type", "entrypoint", "requires_human_approval"],
+          "properties": {
+            "type": {"enum": ["agent_skill", "python", "cli", "api", "worker"]},
+            "entrypoint": {"type": "string"},
+            "requires_human_approval": {"type": "boolean"},
+            "timeout_seconds": {"type": ["integer", "null"], "minimum": 1}
+          },
+          "additionalProperties": false
+        },
+        "solver_capability": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    },
+    "SolverCapability": {
+      "type": "object",
+      "required": [
+        "schema_id",
+        "schema_version",
+        "solver_id",
+        "method",
+        "dimensions",
+        "observables",
+        "native_artifacts",
+        "parallel"
+      ],
+      "properties": {
+        "schema_id": {"const": "SolverCapability"},
+        "schema_version": {"const": "1.0"},
+        "solver_id": {"type": "string", "pattern": "^solver-[a-z0-9-]+$"},
+        "method": {"type": "string"},
+        "dimensions": {"type": "array", "items": {"type": "string"}},
+        "coordinate_systems": {"type": "array", "items": {"type": "string"}},
+        "observables": {"type": "array", "items": {"type": "string"}},
+        "materials": {"type": "array", "items": {"type": "string"}},
+        "boundaries": {"type": "array", "items": {"type": "string"}},
+        "native_artifacts": {"type": "array", "items": {"type": "string"}},
+        "parallel": {"type": "object"},
+        "limitations": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
+    "ToolCallRecord": {
+      "type": "object",
+      "required": [
+        "schema_id",
+        "schema_version",
+        "tool_call_id",
+        "tool_id",
+        "tool_version",
+        "input_refs",
+        "output_refs",
+        "started_at",
+        "status"
+      ],
+      "properties": {
+        "schema_id": {"const": "ToolCallRecord"},
+        "schema_version": {"const": "1.0"},
+        "tool_call_id": {"type": "string"},
+        "tool_id": {"type": "string"},
+        "tool_version": {"type": "string"},
+        "workflow_id": {"type": ["string", "null"]},
+        "input_refs": {"type": "array", "items": {"$ref": "#/$defs/ArtifactRef"}},
+        "output_refs": {"type": "array", "items": {"$ref": "#/$defs/ArtifactRef"}},
+        "started_at": {"type": "string", "format": "date-time"},
+        "finished_at": {"type": ["string", "null"], "format": "date-time"},
+        "status": {"enum": ["planned", "running", "succeeded", "failed", "cancelled"]},
+        "approval_ref": {"type": ["string", "null"]},
+        "error": {"type": ["object", "null"]}
+      },
+      "additionalProperties": false
+    },
+    "RunManifest": {
+      "type": "object",
+      "required": [
+        "schema_id",
+        "schema_version",
+        "task_id",
+        "run_id",
+        "solver",
+        "contract_hash",
+        "completion_state",
+        "artifacts",
+        "environment"
+      ],
+      "properties": {
+        "schema_id": {"const": "RunManifest"},
+        "schema_version": {"const": "1.0"},
+        "task_id": {"type": "string"},
+        "run_id": {"type": "string"},
+        "parent_run": {"type": ["string", "null"]},
+        "solver": {"type": "string"},
+        "solver_version": {"type": ["string", "null"]},
+        "api_flavor": {"type": ["string", "null"]},
+        "skill_version": {"type": ["string", "null"]},
+        "template_id": {"type": ["string", "null"]},
+        "template_version": {"type": ["string", "null"]},
+        "contract_hash": {"type": "string", "pattern": "^[a-fA-F0-9]{64}$"},
+        "command": {"type": ["string", "null"]},
+        "environment": {"type": "object"},
+        "completion_state": {"enum": ["generated", "executed", "validated"]},
+        "artifacts": {"type": "array", "items": {"$ref": "#/$defs/ArtifactRef"}},
+        "warnings": {"type": "array", "items": {"type": "string"}},
+        "error": {"type": ["object", "null"]},
+        "started_at": {"type": ["string", "null"], "format": "date-time"},
+        "finished_at": {"type": ["string", "null"], "format": "date-time"}
+      },
+      "additionalProperties": false
+    },
+    "ValidationCheck": {
+      "type": "object",
+      "required": ["name", "method", "passed"],
+      "properties": {
+        "name": {"type": "string"},
+        "method": {"type": "string"},
+        "passed": {"type": "boolean"},
+        "threshold": {"type": ["number", "null"]},
+        "value": {},
+        "input_refs": {"type": "array", "items": {"$ref": "#/$defs/ArtifactRef"}},
+        "details": {"type": "object"}
+      },
+      "additionalProperties": false
+    },
+    "ValidationReport": {
+      "type": "object",
+      "required": [
+        "schema_id",
+        "schema_version",
+        "validation_id",
+        "run_id",
+        "completion_state",
+        "convergence",
+        "checks",
+        "passed",
+        "warnings"
+      ],
+      "properties": {
+        "schema_id": {"const": "ValidationReport"},
+        "schema_version": {"const": "1.0"},
+        "validation_id": {"type": "string"},
+        "run_id": {"type": "string"},
+        "completion_state": {"enum": ["generated", "executed", "validated"]},
+        "convergence": {
+          "type": "object",
+          "required": ["performed", "user_choice", "proposed_cases"],
+          "properties": {
+            "performed": {"type": "boolean"},
+            "user_choice": {"enum": ["base_only", "base_plus_convergence"]},
+            "proposed_cases": {"type": "array", "items": {"type": "object"}},
+            "executed_cases": {"type": "array", "items": {"type": "object"}},
+            "worst_relative_difference": {"type": ["number", "null"], "minimum": 0}
+          },
+          "additionalProperties": false
+        },
+        "checks": {"type": "array", "items": {"$ref": "#/$defs/ValidationCheck"}},
+        "passed": {"type": "boolean"},
+        "warnings": {"type": "array", "items": {"type": "string"}},
+        "limitations": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
+    "ExampleManifest": {
+      "type": "object",
+      "required": [
+        "schema_id",
+        "schema_version",
+        "example_id",
+        "version",
+        "mode",
+        "quality",
+        "run_manifest",
+        "validation_report",
+        "artifacts"
+      ],
+      "properties": {
+        "schema_id": {"const": "ExampleManifest"},
+        "schema_version": {"const": "1.0"},
+        "example_id": {"type": "string"},
+        "version": {"type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$"},
+        "mode": {"enum": ["paper_reproduction", "free_design"]},
+        "quality": {"enum": ["archived", "executed", "validated", "reviewed"]},
+        "paper_manifest": {"type": ["string", "null"]},
+        "evidence": {"type": ["string", "null"]},
+        "targets": {"type": ["string", "null"]},
+        "simulation_contract": {"type": ["string", "null"]},
+        "run_manifest": {"type": "string"},
+        "validation_report": {"type": "string"},
+        "artifacts": {"type": "array", "items": {"$ref": "#/$defs/ArtifactRef"}},
+        "device_type": {"type": ["string", "null"]},
+        "materials": {"type": "array", "items": {"type": "string"}},
+        "observables": {"type": "array", "items": {"type": "string"}},
+        "solver": {"type": ["string", "null"]},
+        "tags": {"type": "array", "items": {"type": "string"}},
+        "reviewer": {"type": ["string", "null"]},
+        "parent_example": {"type": ["string", "null"]},
+        "license": {"type": ["object", "null"]},
+        "sensitivity": {"enum": ["public", "internal", "restricted"]}
+      },
+      "additionalProperties": false
+    },
+    "ExampleCandidate": {
+      "type": "object",
+      "required": [
+        "schema_id",
+        "schema_version",
+        "candidate_id",
+        "source_run_id",
+        "status",
+        "manifest_draft",
+        "integrity_checks",
+        "sensitivity"
+      ],
+      "properties": {
+        "schema_id": {"const": "ExampleCandidate"},
+        "schema_version": {"const": "1.0"},
+        "candidate_id": {"type": "string"},
+        "source_run_id": {"type": "string"},
+        "status": {
+          "enum": ["pending_integrity", "pending_review", "approved", "rejected"]
+        },
+        "manifest_draft": {"$ref": "#/$defs/ExampleManifest"},
+        "integrity_checks": {"type": "array", "items": {"$ref": "#/$defs/ValidationCheck"}},
+        "license_check": {"type": ["object", "null"]},
+        "sensitivity": {"enum": ["public", "internal", "restricted"]},
+        "failure_labels": {"type": "array", "items": {"type": "string"}},
+        "submitted_at": {"type": "string", "format": "date-time"},
+        "submitted_by": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "ExperienceRecord": {
+      "type": "object",
+      "required": [
+        "schema_id",
+        "schema_version",
+        "experience_id",
+        "source_run",
+        "event",
+        "affected_skills",
+        "proposal",
+        "review_status"
+      ],
+      "properties": {
+        "schema_id": {"const": "ExperienceRecord"},
+        "schema_version": {"const": "1.0"},
+        "experience_id": {"type": "string"},
+        "source_run": {"type": "string"},
+        "source_example": {"type": ["string", "null"]},
+        "event": {"enum": ["human_correction", "validation_failure", "best_practice"]},
+        "affected_skills": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+        "proposal": {
+          "type": "object",
+          "required": ["type", "rule"],
+          "properties": {
+            "type": {"enum": ["failure_case", "best_practice", "human_correction"]},
+            "rule": {"type": "string"},
+            "rationale": {"type": "string"}
+          },
+          "additionalProperties": false
+        },
+        "evidence_strength": {"enum": ["single_case", "multiple_cases", "benchmark"]},
+        "review_status": {"enum": ["pending", "approved", "rejected"]},
+        "reviewer": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    },
+    "ContractDocument": {
+      "oneOf": [
+        {"$ref": "#/$defs/WorkflowRequest"},
+        {"$ref": "#/$defs/PaperManifest"},
+        {"$ref": "#/$defs/Evidence"},
+        {"$ref": "#/$defs/Targets"},
+        {"$ref": "#/$defs/SimulationContract"},
+        {"$ref": "#/$defs/ToolManifest"},
+        {"$ref": "#/$defs/SolverCapability"},
+        {"$ref": "#/$defs/ToolCallRecord"},
+        {"$ref": "#/$defs/RunManifest"},
+        {"$ref": "#/$defs/ValidationReport"},
+        {"$ref": "#/$defs/ExampleManifest"},
+        {"$ref": "#/$defs/ExampleCandidate"},
+        {"$ref": "#/$defs/ExperienceRecord"}
+      ]
+    }
+  }
+}

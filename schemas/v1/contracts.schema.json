@@ -318,12 +318,36 @@
         },
         "resources": {
           "type": "object",
+          "required": ["execution_mode", "mpi_processes"],
           "properties": {
+            "execution_mode": {
+              "enum": ["single_mpi_process", "multi_mpi_process"]
+            },
+            "mpi_processes": {"type": "integer", "minimum": 1},
+            "mpi_launcher": {"type": ["string", "null"]},
             "max_memory_gb": {"type": ["number", "null"], "exclusiveMinimum": 0},
             "max_runtime_seconds": {"type": ["integer", "null"], "minimum": 1},
             "cpu_cores": {"type": ["integer", "null"], "minimum": 1},
             "license_limits": {"type": ["object", "null"]}
           },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "execution_mode": {"const": "single_mpi_process"}
+                }
+              },
+              "then": {"properties": {"mpi_processes": {"const": 1}}}
+            },
+            {
+              "if": {
+                "properties": {
+                  "execution_mode": {"const": "multi_mpi_process"}
+                }
+              },
+              "then": {"properties": {"mpi_processes": {"minimum": 2}}}
+            }
+          ],
           "additionalProperties": false
         },
         "outputs": {
@@ -578,8 +602,8 @@
         "evidence": {"type": ["string", "null"]},
         "targets": {"type": ["string", "null"]},
         "simulation_contract": {"type": ["string", "null"]},
-        "run_manifest": {"type": "string"},
-        "validation_report": {"type": "string"},
+        "run_manifest": {"type": ["string", "null"]},
+        "validation_report": {"type": ["string", "null"]},
         "artifacts": {"type": "array", "items": {"$ref": "#/$defs/ArtifactRef"}},
         "device_type": {"type": ["string", "null"]},
         "materials": {"type": "array", "items": {"type": "string"}},
@@ -591,6 +615,21 @@
         "license": {"type": ["object", "null"]},
         "sensitivity": {"enum": ["public", "internal", "restricted"]}
       },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "quality": {"enum": ["validated", "reviewed"]}
+            }
+          },
+          "then": {
+            "properties": {
+              "run_manifest": {"type": "string", "minLength": 1},
+              "validation_report": {"type": "string", "minLength": 1}
+            }
+          }
+        }
+      ],
       "additionalProperties": false
     },
     "ExampleCandidate": {
@@ -599,7 +638,8 @@
         "schema_id",
         "schema_version",
         "candidate_id",
-        "source_run_id",
+        "source_kind",
+        "source_ref",
         "status",
         "manifest_draft",
         "integrity_checks",
@@ -609,7 +649,13 @@
         "schema_id": {"const": "ExampleCandidate"},
         "schema_version": {"const": "1.0"},
         "candidate_id": {"type": "string"},
-        "source_run_id": {"type": "string"},
+        "source_kind": {"enum": ["run", "legacy_folder"]},
+        "source_ref": {"type": "string", "minLength": 1},
+        "source_run_id": {"type": ["string", "null"]},
+        "source_snapshot_sha256": {
+          "type": ["string", "null"],
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
         "status": {
           "enum": ["pending_integrity", "pending_review", "approved", "rejected"]
         },
@@ -620,6 +666,224 @@
         "failure_labels": {"type": "array", "items": {"type": "string"}},
         "submitted_at": {"type": "string", "format": "date-time"},
         "submitted_by": {"type": "string"}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"source_kind": {"const": "run"}}},
+          "then": {
+            "required": ["source_run_id"],
+            "properties": {"source_run_id": {"type": "string", "minLength": 1}}
+          }
+        },
+        {
+          "if": {"properties": {"source_kind": {"const": "legacy_folder"}}},
+          "then": {
+            "required": ["source_snapshot_sha256"],
+            "properties": {
+              "source_snapshot_sha256": {
+                "type": "string",
+                "pattern": "^[a-fA-F0-9]{64}$"
+              }
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "ExampleCatalogEntry": {
+      "type": "object",
+      "required": [
+        "example_id",
+        "version",
+        "manifest_uri",
+        "manifest_sha256",
+        "mode",
+        "quality",
+        "materials",
+        "observables",
+        "tags",
+        "sensitivity"
+      ],
+      "properties": {
+        "example_id": {"type": "string", "minLength": 1},
+        "version": {"type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$"},
+        "manifest_uri": {"type": "string", "minLength": 1},
+        "manifest_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "mode": {"enum": ["paper_reproduction", "free_design"]},
+        "quality": {"enum": ["archived", "executed", "validated", "reviewed"]},
+        "solver": {"type": ["string", "null"]},
+        "device_type": {"type": ["string", "null"]},
+        "materials": {"type": "array", "items": {"type": "string"}},
+        "observables": {"type": "array", "items": {"type": "string"}},
+        "tags": {"type": "array", "items": {"type": "string"}},
+        "sensitivity": {"enum": ["public", "internal", "restricted"]}
+      },
+      "additionalProperties": false
+    },
+    "ExampleCatalog": {
+      "type": "object",
+      "required": [
+        "schema_id",
+        "schema_version",
+        "format_version",
+        "updated_at",
+        "entries"
+      ],
+      "properties": {
+        "schema_id": {"const": "ExampleCatalog"},
+        "schema_version": {"const": "1.0"},
+        "format_version": {"const": 1},
+        "updated_at": {"type": "string", "format": "date-time"},
+        "entries": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/ExampleCatalogEntry"}
+        }
+      },
+      "additionalProperties": false
+    },
+    "SourceSnapshotFile": {
+      "type": "object",
+      "required": ["path", "size_bytes", "sha256"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "size_bytes": {"type": "integer", "minimum": 0},
+        "sha256": {"type": "string", "pattern": "^[a-fA-F0-9]{64}$"}
+      },
+      "additionalProperties": false
+    },
+    "SourceSnapshot": {
+      "type": "object",
+      "required": [
+        "schema_id",
+        "schema_version",
+        "source_uri",
+        "captured_at",
+        "tree_sha256",
+        "size_bytes",
+        "files"
+      ],
+      "properties": {
+        "schema_id": {"const": "SourceSnapshot"},
+        "schema_version": {"const": "1.0"},
+        "source_uri": {"type": "string", "minLength": 1},
+        "captured_at": {"type": "string", "format": "date-time"},
+        "tree_sha256": {"type": "string", "pattern": "^[a-fA-F0-9]{64}$"},
+        "size_bytes": {"type": "integer", "minimum": 0},
+        "files": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/SourceSnapshotFile"}
+        }
+      },
+      "additionalProperties": false
+    },
+    "ExampleCurationRequest": {
+      "type": "object",
+      "required": [
+        "schema_id",
+        "schema_version",
+        "source_uri",
+        "library_root",
+        "candidate_id",
+        "mode",
+        "target_version"
+      ],
+      "properties": {
+        "schema_id": {"const": "ExampleCurationRequest"},
+        "schema_version": {"const": "1.0"},
+        "source_uri": {"type": "string", "minLength": 1},
+        "library_root": {"type": "string", "minLength": 1},
+        "candidate_id": {"type": "string", "minLength": 1},
+        "mode": {"enum": ["paper_reproduction", "free_design"]},
+        "target_version": {"type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$"},
+        "metadata": {"type": "object"}
+      },
+      "additionalProperties": false
+    },
+    "CurationItem": {
+      "type": "object",
+      "required": ["path", "action", "reason"],
+      "properties": {
+        "path": {"type": "string"},
+        "action": {
+          "enum": ["include", "transform", "exclude", "blocked", "needs_human_input"]
+        },
+        "reason": {"type": "string"},
+        "source_sha256": {"type": ["string", "null"]},
+        "target_path": {"type": ["string", "null"]},
+        "target_sha256": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    },
+    "ExampleCurationReport": {
+      "type": "object",
+      "required": [
+        "schema_id",
+        "schema_version",
+        "candidate_id",
+        "source_snapshot_sha256",
+        "source_unchanged",
+        "items",
+        "added_fields",
+        "removed_fields",
+        "unmapped_metadata",
+        "required_questions",
+        "blocked",
+        "recommended_quality"
+      ],
+      "properties": {
+        "schema_id": {"const": "ExampleCurationReport"},
+        "schema_version": {"const": "1.0"},
+        "candidate_id": {"type": "string"},
+        "source_snapshot_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "source_unchanged": {"const": true},
+        "items": {"type": "array", "items": {"$ref": "#/$defs/CurationItem"}},
+        "added_fields": {"type": "array", "items": {"type": "object"}},
+        "removed_fields": {"type": "array", "items": {"type": "object"}},
+        "unmapped_metadata": {"type": "array", "items": {"type": "object"}},
+        "required_questions": {"type": "array", "items": {"type": "string"}},
+        "blocked": {"type": "boolean"},
+        "recommended_quality": {
+          "enum": ["archived", "executed", "validated", "reviewed"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "G3ReviewDecision": {
+      "type": "object",
+      "required": [
+        "schema_id",
+        "schema_version",
+        "candidate_id",
+        "candidate_sha256",
+        "approved",
+        "reviewer",
+        "reviewed_at",
+        "rationale",
+        "approved_quality",
+        "allow_publication"
+      ],
+      "properties": {
+        "schema_id": {"const": "G3ReviewDecision"},
+        "schema_version": {"const": "1.0"},
+        "candidate_id": {"type": "string"},
+        "candidate_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "approved": {"type": "boolean"},
+        "reviewer": {"type": "string", "minLength": 1},
+        "reviewed_at": {"type": "string", "format": "date-time"},
+        "rationale": {"type": "string", "minLength": 1},
+        "approved_quality": {
+          "enum": ["archived", "executed", "validated", "reviewed"]
+        },
+        "allow_publication": {"type": "boolean"}
       },
       "additionalProperties": false
     },
@@ -673,6 +937,11 @@
         {"$ref": "#/$defs/ValidationReport"},
         {"$ref": "#/$defs/ExampleManifest"},
         {"$ref": "#/$defs/ExampleCandidate"},
+        {"$ref": "#/$defs/ExampleCatalog"},
+        {"$ref": "#/$defs/SourceSnapshot"},
+        {"$ref": "#/$defs/ExampleCurationRequest"},
+        {"$ref": "#/$defs/ExampleCurationReport"},
+        {"$ref": "#/$defs/G3ReviewDecision"},
         {"$ref": "#/$defs/ExperienceRecord"}
       ]
     }

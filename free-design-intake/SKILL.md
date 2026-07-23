@@ -29,8 +29,11 @@ Produce `simulation-contract.json` conforming to:
 6. Mark example-derived values as suggestions; they never override an explicit
    user constraint.
 7. Include independent mesh, PML/padding, and run-control convergence cases.
-8. Keep all assumptions visible with reason, consequence, and acceptance.
-9. Validate the completed contract. Correct the document rather than weakening
+8. Before any simulation code is written, ask the user to choose one MPI
+   process or multiple MPI processes. Record `execution_mode`,
+   `mpi_processes`, and any required launcher in `resources`.
+9. Keep all assumptions visible with reason, consequence, and acceptance.
+10. Validate the completed contract. Correct the document rather than weakening
    the schema.
 
 ## Gate
@@ -39,5 +42,6 @@ Do not select a solver or generate a model until:
 
 - requested observables also appear in raw or derived outputs;
 - material models and valid spectral ranges are identified;
+- MPI execution mode and process count are explicitly accepted;
 - interpretation-changing assumptions are accepted;
 - G1 contract review is recorded.

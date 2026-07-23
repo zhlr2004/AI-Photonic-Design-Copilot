@@ -40,7 +40,8 @@ only questions that materially change the model.
 - [ ] Required validation identified: analytic, energy balance, reference data,
       cross-method, or convergence only.
 - [ ] Available memory, physical cores, and maximum runtime stated.
-- [ ] Serial versus MPI execution selected.
+- [ ] Before code generation, one MPI process or multiple MPI processes
+      selected and the exact process count/launcher recorded.
 
 ## Output contract
 

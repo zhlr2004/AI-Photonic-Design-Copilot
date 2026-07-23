@@ -50,6 +50,9 @@ class ContractValidator:
             "TargetPanel",
             "Assumption",
             "ValidationCheck",
+            "ExampleCatalogEntry",
+            "SourceSnapshotFile",
+            "CurationItem",
             "ContractDocument",
         }
         return tuple(name for name in self.catalog["$defs"] if name not in excluded)
@@ -102,6 +105,12 @@ class ContractValidator:
             raise ContractValidationError(
                 "requested observables missing from outputs: " + ", ".join(sorted(missing))
             )
+        resources = document["resources"]
+        cpu_cores = resources.get("cpu_cores")
+        if cpu_cores is not None and resources["mpi_processes"] > cpu_cores:
+            raise ContractValidationError(
+                "mpi_processes cannot exceed the declared cpu_cores"
+            )
 
     def _check_ValidationReport(self, document: Mapping[str, Any]) -> None:
         convergence = document["convergence"]
@@ -120,3 +129,24 @@ class ContractValidator:
                 raise ContractValidationError(
                     "failure-labelled examples cannot be validated or reviewed"
                 )
+        if document["sensitivity"] != document["manifest_draft"]["sensitivity"]:
+            raise ContractValidationError(
+                "candidate and manifest sensitivity must be identical"
+            )
+
+    def _check_ExampleCatalog(self, document: Mapping[str, Any]) -> None:
+        keys = [
+            (entry["example_id"], entry["version"]) for entry in document["entries"]
+        ]
+        if len(keys) != len(set(keys)):
+            raise ContractValidationError("catalog entries must be unique")
+        if keys != sorted(keys):
+            raise ContractValidationError(
+                "catalog entries must be sorted by example_id and version"
+            )
+
+    def _check_G3ReviewDecision(self, document: Mapping[str, Any]) -> None:
+        if document["allow_publication"] and not document["approved"]:
+            raise ContractValidationError(
+                "publication cannot be allowed by a rejected G3 decision"
+            )

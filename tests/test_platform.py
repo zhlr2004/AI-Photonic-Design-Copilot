@@ -21,6 +21,7 @@ from photonic_copilot.gates import (
     Approval,
     QualityGateError,
     completion_state,
+    require_contract_gate,
     require_execution_gate,
 )
 from photonic_copilot.orchestrator import WorkflowSession
@@ -85,6 +86,44 @@ def test_unaccepted_assumption_is_rejected() -> None:
         ContractValidator().validate(contract)
 
 
+def test_mpi_choice_is_required_and_bounded_by_cpu_cores() -> None:
+    contract = load_contract()
+    contract["resources"]["execution_mode"] = "multi_mpi_process"
+    contract["resources"]["mpi_processes"] = 8
+    contract["resources"]["cpu_cores"] = 4
+    with pytest.raises(ContractValidationError, match="cannot exceed"):
+        ContractValidator().validate(contract)
+
+
+def test_g1_approval_records_the_mpi_choice_before_generation() -> None:
+    contract = load_contract()
+    approval = Approval(
+        gate="G1",
+        approved=True,
+        reviewer="expert",
+        rationale="single-process smoke workflow approved",
+        details={
+            "execution_mode": "single_mpi_process",
+            "mpi_processes": 1,
+            "mpi_launcher": None,
+        },
+    )
+    require_contract_gate(contract, approval)
+
+    mismatched = Approval(
+        gate="G1",
+        approved=True,
+        reviewer="expert",
+        rationale="incorrect parallel configuration",
+        details={
+            "execution_mode": "multi_mpi_process",
+            "mpi_processes": 4,
+        },
+    )
+    with pytest.raises(QualityGateError, match="must record"):
+        require_contract_gate(contract, mismatched)
+
+
 def test_registry_discovers_workflow_and_two_solvers() -> None:
     registry = ToolRegistry()
     tools = registry.discover([ROOT])
@@ -93,6 +132,7 @@ def test_registry_discovers_workflow_and_two_solvers() -> None:
         "fdtd-result-validation",
         "free-design-intake",
         "paper-reproduction-instructor",
+        "photonic-example-curator",
         "solver-meep",
         "solver-lumerical-fdtd",
     }
@@ -132,7 +172,10 @@ def test_adapters_map_same_contract(tmp_path: Path) -> None:
     assert lumerical.execution_arguments(contract, "waveguide-bend-rt") == [
         "--mesh-accuracy",
         "2",
+        "--mpi-processes",
+        "1",
     ]
+    assert meep.execution_prefix(contract)[0:3] == ["mpiexec", "-n", "1"]
     report = validated_report("lum-run")
     finalized = lumerical.finalize_validation(tmp_path / "lumerical", report)
     assert finalized["completion_state"] == "validated"
@@ -222,6 +265,40 @@ def test_example_library_publishes_immutable_version(tmp_path: Path) -> None:
     artifact = tmp_path / "run" / "spectra.json"
     artifact.parent.mkdir()
     artifact.write_text('{"transmittance": [1.0]}', encoding="utf-8")
+    contract_path = artifact.parent / "simulation-contract.json"
+    contract_path.write_text(json.dumps(load_contract()), encoding="utf-8")
+    run_manifest_path = artifact.parent / "run-manifest.json"
+    run_manifest_path.write_text(
+        json.dumps(
+            {
+                "schema_id": "RunManifest",
+                "schema_version": "1.0",
+                "task_id": "task-1",
+                "run_id": "run-1",
+                "parent_run": None,
+                "solver": "solver-meep",
+                "solver_version": None,
+                "api_flavor": None,
+                "skill_version": "1.0.0",
+                "template_id": "test",
+                "template_version": "1.0.0",
+                "contract_hash": canonical_hash(load_contract()),
+                "command": "python simulation.py",
+                "environment": {},
+                "completion_state": "validated",
+                "artifacts": [],
+                "warnings": [],
+                "error": None,
+                "started_at": None,
+                "finished_at": None,
+            }
+        ),
+        encoding="utf-8",
+    )
+    validation_path = artifact.parent / "validation-report.json"
+    validation_path.write_text(
+        json.dumps(validated_report()), encoding="utf-8"
+    )
     manifest = {
         "schema_id": "ExampleManifest",
         "schema_version": "1.0",
@@ -232,9 +309,9 @@ def test_example_library_publishes_immutable_version(tmp_path: Path) -> None:
         "paper_manifest": None,
         "evidence": None,
         "targets": None,
-        "simulation_contract": "contract.json",
-        "run_manifest": "run-manifest.json",
-        "validation_report": "validation-report.json",
+        "simulation_contract": str(contract_path),
+        "run_manifest": str(run_manifest_path),
+        "validation_report": str(validation_path),
         "artifacts": [{"uri": str(artifact), "kind": "file"}],
         "device_type": "waveguide_bend",
         "materials": ["benchmark_dielectric"],
@@ -250,6 +327,8 @@ def test_example_library_publishes_immutable_version(tmp_path: Path) -> None:
         "schema_id": "ExampleCandidate",
         "schema_version": "1.0",
         "candidate_id": "candidate-1",
+        "source_kind": "run",
+        "source_ref": str(artifact.parent),
         "source_run_id": "run-1",
         "status": "pending_review",
         "manifest_draft": manifest,
@@ -261,16 +340,21 @@ def test_example_library_publishes_immutable_version(tmp_path: Path) -> None:
         "submitted_by": "agent",
     }
     library = ExampleLibrary(tmp_path / "library")
-    library.stage_candidate(candidate)
+    staging = library.stage_candidate(candidate)
+    staged = json.loads(
+        (staging / "example-candidate.json").read_text(encoding="utf-8")
+    )
+    approval = Approval(
+        gate="G3",
+        approved=True,
+        reviewer="expert",
+        rationale="validated and complete",
+        details={"candidate_sha256": canonical_hash(staged)},
+    )
     published = library.publish(
         candidate,
         validation_report=validated_report(),
-        approval=Approval(
-            gate="G3",
-            approved=True,
-            reviewer="expert",
-            rationale="validated and complete",
-        ),
+        approval=approval,
     )
     assert published["reviewer"] == "expert"
     assert library.search(device_type="waveguide_bend")[0]["quality"] == "reviewed"
@@ -278,12 +362,7 @@ def test_example_library_publishes_immutable_version(tmp_path: Path) -> None:
         library.publish(
             candidate,
             validation_report=validated_report(),
-            approval=Approval(
-                gate="G3",
-                approved=True,
-                reviewer="expert",
-                rationale="duplicate",
-            ),
+            approval=approval,
         )
 
 

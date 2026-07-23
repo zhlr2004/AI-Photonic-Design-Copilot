@@ -1,0 +1,23 @@
+schema_id: ToolManifest
+schema_version: "1.0"
+id: photonic-example-curator
+version: 1.1.0
+kind: utility
+capabilities:
+  - legacy_example_inspection
+  - example_case_staging
+  - example_case_sanitization
+  - example_candidate_preparation
+  - human_reviewed_case_intake
+  - g3_bound_publication
+input_schema: schemas/v1/contracts.schema.json#/$defs/ExampleCurationRequest
+output_schemas:
+  - schemas/v1/contracts.schema.json#/$defs/SourceSnapshot
+  - schemas/v1/contracts.schema.json#/$defs/ExampleCurationReport
+  - schemas/v1/contracts.schema.json#/$defs/ExampleCandidate
+execution:
+  type: cli
+  entrypoint: curate-photonic-example-case/scripts/curate_case.py
+  requires_human_approval: true
+  timeout_seconds: 3600
+solver_capability:

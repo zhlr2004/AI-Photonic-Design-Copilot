@@ -120,8 +120,21 @@ downloaded/source PDF in the task root when it is available.
   set and ask the user to choose before writing `instruction.md`.
 - Do not claim an experimental panel is directly reproducible unless the
   instruction also specifies the required measurement or instrument model.
+- After the reproduction targets are fixed, inspect other figures, panels, and
+  supplementary schematics for information that can clarify those targets.
+  Pay particular attention to experimental setup diagrams, optical paths,
+  sample orientation, illumination/collection geometry, polarization, ports,
+  detector placement, calibration, and normalization. Treat these figures as
+  supporting evidence rather than additional reproduction targets.
 
 ### 4. Extract reproducibility facts
+
+For each selected target, inspect related non-target figures and experimental
+setup schematics before completing the evidence table. Extract any information
+that constrains the source, polarization, incidence angle, collection geometry,
+sample orientation, ports, monitors, detector response, reference measurement,
+or normalization. Record the exact source figure/panel and do not infer details
+that are not shown.
 
 Build a working evidence table before drafting. For each value, record the
 paper location (page, section, equation, caption, table, or supplement):
@@ -181,6 +194,9 @@ human-readable instruction:
 - Use exactly one evidence status: `specified`, `literature`,
   `example_suggestion`, `assumption`, or `unknown`.
 - Preserve paper locations and retrieved example IDs/versions as provenance.
+- Before any simulation code is written, ask whether to use one MPI process or
+  multiple MPI processes. Record `resources.execution_mode`,
+  `resources.mpi_processes`, and any launcher required by the selected runtime.
 - Include proposed mesh/PML/run-control convergence cases even if the user may
   later opt out of executing them.
 - Keep requested observables in both `objective.observables` and
@@ -304,6 +320,8 @@ Before finishing:
   and pass their V1 schemas;
 - confirm the instruction and JSON documents contain no conflicting parameter,
   target, assumption, or validation values;
+- confirm G1 records the MPI execution mode and process count before model code
+  generation;
 - verify every target panel appears consistently in workflow, filenames,
   validation, and deliverables;
 - search for stale titles, figures, physics, software, API names, and extensions
@@ -316,5 +334,10 @@ Before finishing:
   specification for every target;
 - confirm assumptions and missing parameters are visible and not presented as
   paper facts;
+- confirm relevant non-target figures and experimental setup schematics were
+  checked for supporting information;
+- verify useful setup-derived parameters cite their source figure/panel in
+  Evidence or SimulationContract, and no schematic detail was silently treated
+  as a paper-specified numerical value;
 - confirm the analytical-bypass and hardcoding bans remain explicit;
 - confirm all Markdown image and reference links resolve.

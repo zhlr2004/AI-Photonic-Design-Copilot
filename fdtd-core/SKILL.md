@@ -55,17 +55,19 @@ Record the native-to-canonical mapping in run metadata.
 ## Common execution contract
 
 1. Validate the SimulationContract and reject unaccepted material assumptions.
-2. Verify environment availability without consuming a commercial license by
+2. Before writing solver code, obtain the G1 choice of single MPI process or
+   multiple MPI processes and record the exact process count.
+3. Verify environment availability without consuming a commercial license by
    default.
-3. Generate a deterministic model in an isolated run directory.
-4. Complete [checklists/simulation-review.md](checklists/simulation-review.md).
-5. Obtain explicit G2 approval for `base_only` or
+4. Generate a deterministic model in an isolated run directory.
+5. Complete [checklists/simulation-review.md](checklists/simulation-review.md).
+6. Obtain explicit G2 approval for `base_only` or
    `base_plus_convergence`.
-6. Run a reduced smoke case before the production case.
-7. Export raw arrays before computing derived quantities.
-8. If approved, vary mesh, PML/padding, and run-control independently.
-9. Run deterministic physics checks.
-10. Emit the report described in
+7. Run a reduced smoke case before the production case.
+8. Export raw arrays before computing derived quantities.
+9. If approved, vary mesh, PML/padding, and run-control independently.
+10. Run deterministic physics checks.
+11. Emit the report described in
     [checklists/result-report.md](checklists/result-report.md).
 
 ## Convergence

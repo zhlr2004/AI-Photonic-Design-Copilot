@@ -1,19 +1,24 @@
 schema_id: ToolManifest
 schema_version: "1.0"
 id: example-library
-version: 1.0.0
+version: 1.2.0
 kind: service
 capabilities:
   - example_search
   - example_candidate_staging
   - reviewed_example_publication
+  - human_reviewed_case_publication
+  - folder_library_integrity_validation
+  - catalog_rebuild
+  - legacy_example_staging
 input_schema: schemas/v1/contracts.schema.json#/$defs/SimulationContract
 output_schemas:
   - schemas/v1/contracts.schema.json#/$defs/ExampleManifest
   - schemas/v1/contracts.schema.json#/$defs/ExampleCandidate
+  - schemas/v1/contracts.schema.json#/$defs/ExampleCatalog
 execution:
   type: python
-  entrypoint: photonic_copilot.example_library:ExampleLibrary
+  entrypoint: photonic_copilot.folder_example_library:FolderExampleLibrary
   requires_human_approval: true
   timeout_seconds: 300
 solver_capability:

@@ -22,6 +22,9 @@ env/
 
 # Local example outputs
 exampleinstructions/
+example-library/examples/
+example-library/staging/
+staging/
 
 # Local design drafts
 Design1.0.md

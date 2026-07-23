@@ -16,7 +16,10 @@ The catalog defines:
 - `SimulationContract`;
 - `ToolManifest`, `SolverCapability`, and `ToolCallRecord`;
 - `RunManifest` and `ValidationReport`;
-- `ExampleManifest`, `ExampleCandidate`, and `ExperienceRecord`.
+- `ExampleManifest`, `ExampleCandidate`, `ExampleCatalog`, and
+  `ExperienceRecord`;
+- `SourceSnapshot`, `ExampleCurationRequest`, `ExampleCurationReport`, and
+  `G3ReviewDecision`.
 
 ## Compatibility rules
 
@@ -28,6 +31,12 @@ The catalog defines:
 - Solver adapters return `unsupported`, `requires_assumption`, or
   `requires_manual_implementation` rather than silently dropping requirements.
 - Published example versions are immutable.
+- Published example documents and artifact URIs are relative to their version
+  directory so a folder library can be moved.
+- `ExampleManifest` is authoritative; `ExampleCatalog` is a rebuildable,
+  sorted index.
+- Legacy cases are copied to staging and retain a SourceSnapshot. A curation
+  tool must never modify the source case.
 
 Validate documents through `photonic_copilot.contracts.ContractValidator` or
 directly with a JSON Schema Draft 2020-12 implementation.

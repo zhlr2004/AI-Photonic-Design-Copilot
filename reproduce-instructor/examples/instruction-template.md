@@ -43,6 +43,9 @@ the paper.
   every target panel.
 - Read the main text, methods, captions, equations, tables, and supplementary
   information relevant to the targets.
+- After the target panels are fixed, inspect non-target experimental setup,
+  optical-path, system, and measurement schematics for supporting information.
+  Do not automatically add those schematics as reproduction targets.
 
 ### Step 2: Extraction and Hard-Logic Verification
 
@@ -51,6 +54,7 @@ Do not start implementation until this step is complete.
 | Task | Requirement |
 | --- | --- |
 | **Identify Targets** | List every requested figure/panel, its physical observable, and its stable output basename, such as `fig2_b`. |
+| **Supporting Schematics** | Inspect related non-target setup figures for source, polarization, incidence/collection geometry, sample orientation, ports, monitors, detector response, calibration, and normalization. Record the exact source figure/panel and do not infer unshown values. |
 | **Parameter Provenance** | Record every required parameter, value, unit, and source location. Mark missing values as unspecified. |
 | **Model Definition** | Extract geometry, coordinate system, materials, dispersion/loss, sources, boundaries, domain, discretization, monitors/probes, sweeps, and solver stopping criteria. |
 | **Target Data** | Extract explicit values, ranges, peaks, signs, symmetries, normalization, and other validation evidence from the paper. |

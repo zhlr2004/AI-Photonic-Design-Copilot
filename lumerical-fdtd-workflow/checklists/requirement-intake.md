@@ -42,6 +42,9 @@ Do not replace a missing dispersive model with an arbitrary constant index.
 
 ## Accuracy and resources
 
+- [ ] Single MPI process or multiple MPI processes selected before code
+      generation
+- [ ] Approved MPI process count and Lumerical resource configuration recorded
 - [ ] Target error for each primary observable
 - [ ] Global mesh accuracy and planned local mesh spacing
 - [ ] PML/padding and run-control convergence cases

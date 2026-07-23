@@ -24,6 +24,9 @@ Complete this gate before any solver execution.
 
 ## Resources and outputs
 
+- [ ] G1 records single-MPI-process or multi-MPI-process execution.
+- [ ] MPI process count and launcher/resource configuration match the approved
+      contract.
 - [ ] Memory, runtime, CPU, storage, and license estimates are acceptable.
 - [ ] The run directory is isolated and output paths stay inside it.
 - [ ] Script/configuration and native model are saved before the expensive run.

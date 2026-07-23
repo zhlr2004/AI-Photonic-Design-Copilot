@@ -34,6 +34,23 @@ def close_session(session: Any) -> None:
         close()
 
 
+def configure_mpi_resources(session: Any, process_count: int) -> None:
+    """Configure the installed FDTD resource for the approved MPI process count."""
+
+    if process_count < 1:
+        raise ValueError("MPI process count must be at least one")
+    setter = getattr(session, "setresource", None)
+    if not callable(setter):
+        raise RuntimeError(
+            "Installed Lumerical API does not expose setresource; "
+            "configure MPI resources manually before execution"
+        )
+    try:
+        setter("FDTD", 1, "processes", str(process_count))
+    except TypeError:
+        setter("FDTD", "processes", str(process_count))
+
+
 def dataset_array(dataset: Any, *keys: str) -> np.ndarray:
     for key in keys:
         try:

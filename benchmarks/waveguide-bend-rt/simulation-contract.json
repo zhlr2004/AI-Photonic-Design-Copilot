@@ -106,6 +106,9 @@
     ]
   },
   "resources": {
+    "execution_mode": "single_mpi_process",
+    "mpi_processes": 1,
+    "mpi_launcher": null,
     "max_memory_gb": 8,
     "max_runtime_seconds": 3600,
     "cpu_cores": 4,

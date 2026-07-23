@@ -1,0 +1,144 @@
+{
+  "schema_id": "ExampleCatalog",
+  "schema_version": "1.0",
+  "format_version": 1,
+  "updated_at": "2026-07-20T06:11:15.817458+00:00",
+  "entries": [
+    {
+      "example_id": "task_dai_2020",
+      "version": "1.0.0",
+      "manifest_uri": "examples/task_dai_2020/1.0.0/example-manifest.json",
+      "manifest_sha256": "ab53966996623c75a2f81d4a8817521a6e5a69df45b61488a69d76c85ca61b2c",
+      "mode": "paper_reproduction",
+      "quality": "executed",
+      "solver": "Ansys Lumerical FDTD 2024 R1 / 8.31.3633",
+      "device_type": "segmented Archimedean plasmonic vortex coupler",
+      "materials": [
+        "silver",
+        "silicon",
+        "native oxide",
+        "vacuum"
+      ],
+      "observables": [
+        "PEEM proxy",
+        "Poynting vector",
+        "polarization ellipses",
+        "L-line map",
+        "spin angular momentum",
+        "topological charge density"
+      ],
+      "tags": [
+        "paper-reproduction",
+        "plasmonic-topological-quasiparticle",
+        "meron",
+        "failure"
+      ],
+      "sensitivity": "internal"
+    },
+    {
+      "example_id": "task_ostrovsky_2018",
+      "version": "1.0.0",
+      "manifest_uri": "examples/task_ostrovsky_2018/1.0.0/example-manifest.json",
+      "manifest_sha256": "cb9e87aac4133558fd16429b71824a38117d23364e68d3122cd728ab9c93d264",
+      "mode": "paper_reproduction",
+      "quality": "executed",
+      "solver": null,
+      "device_type": null,
+      "materials": [],
+      "observables": [],
+      "tags": [
+        "paper-reproduction",
+        "optical-singularities",
+        "figure-6"
+      ],
+      "sensitivity": "internal"
+    },
+    {
+      "example_id": "task_shi_2026",
+      "version": "1.0.0",
+      "manifest_uri": "examples/task_shi_2026/1.0.0/example-manifest.json",
+      "manifest_sha256": "16031b58ea73c02ae7f83479bd24647e34973f4db13dd1a94c1c21f4f7cf7e79",
+      "mode": "paper_reproduction",
+      "quality": "executed",
+      "solver": "Ansys Lumerical FDTD 2024 R1 / 8.31.3633",
+      "device_type": "plasmonic moire spin-twistronics lattice",
+      "materials": [
+        "gold",
+        "air"
+      ],
+      "observables": [
+        "spin angular momentum",
+        "normalized spin texture",
+        "skyrmion-number density",
+        "moire periodicity",
+        "Fourier peak families"
+      ],
+      "tags": [
+        "paper-reproduction",
+        "plasmonic-spin-twistronics",
+        "moire-spin-lattice",
+        "skyrmion",
+        "meron"
+      ],
+      "sensitivity": "internal"
+    },
+    {
+      "example_id": "task_zhang_2017",
+      "version": "1.0.0",
+      "manifest_uri": "examples/task_zhang_2017/1.0.0/example-manifest.json",
+      "manifest_sha256": "9830eaa280405498dfbbf3f34f4d7d6df2b416b61edb3795642b74680e9322c8",
+      "mode": "paper_reproduction",
+      "quality": "executed",
+      "solver": "Meep 1.34.0 MPI",
+      "device_type": "double-Archimedean metasurface plasmonic vector-vortex generator",
+      "materials": [
+        "gold",
+        "glass",
+        "air"
+      ],
+      "observables": [
+        "complex Ex and Ey fields",
+        "total and component intensity",
+        "polarization orientation",
+        "ellipticity",
+        "wrapped component phase"
+      ],
+      "tags": [
+        "paper-reproduction",
+        "plasmonic-vector-vortex",
+        "radial-polarization",
+        "meep",
+        "failure"
+      ],
+      "sensitivity": "internal"
+    },
+    {
+      "example_id": "task_zhou_2025",
+      "version": "1.0.0",
+      "manifest_uri": "examples/task_zhou_2025/1.0.0/example-manifest.json",
+      "manifest_sha256": "84e3118f087959072992b1f0cdb5f96e940a658b5f4fd355fe88fc509908ffa3",
+      "mode": "paper_reproduction",
+      "quality": "executed",
+      "solver": "Ansys Lumerical FDTD 2024 R1 / 8.31.3633",
+      "device_type": "plasmonic nanoslit optical-skyrmion generator",
+      "materials": [
+        "gold",
+        "glass",
+        "air"
+      ],
+      "observables": [
+        "electric field",
+        "skyrmion-number density",
+        "integrated skyrmion number"
+      ],
+      "tags": [
+        "paper-reproduction",
+        "optical-skyrmions",
+        "vortex-beam",
+        "figure-2",
+        "figure-3"
+      ],
+      "sensitivity": "internal"
+    }
+  ]
+}

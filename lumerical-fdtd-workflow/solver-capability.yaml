@@ -37,7 +37,7 @@ native_artifacts:
   - json
   - csv
 parallel:
-  mpi: false
+  mpi: true
   independent_jobs: true
 limitations:
   - Requires an installed Ansys Lumerical release and a valid FDTD license.

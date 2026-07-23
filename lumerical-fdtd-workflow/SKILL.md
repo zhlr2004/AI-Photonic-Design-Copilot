@@ -56,6 +56,9 @@ When invoked through the platform, accept
 `../schemas/v1/contracts.schema.json#/$defs/SimulationContract`, validate it
 before building the model, and preserve its `contract_id` and canonical hash in
 `RunManifest`.
+Before writing Python/LSF model code, require G1 to confirm
+`single_mpi_process` or `multi_mpi_process` and the exact `mpi_processes`
+value. Do not rely on an unrecorded GUI resource default.
 Establish:
 
 - physical objective and requested observables;
@@ -157,6 +160,8 @@ physically plausible monitor data.
 ## Phase 6: Run correctly
 
 - Use an explicit session lifecycle, preferably `with lumapi.FDTD(...) as fdtd`.
+- Apply the G1-approved FDTD resource/MPI process count before `run`, record it
+  in metadata, and do not silently substitute a different resource profile.
 - Set order-dependent object properties with an ordered mapping or in a safe
   sequence.
 - Save the project before `run`; save again after configuration changes whose

@@ -18,6 +18,11 @@ Complete this contract before solver selection.
 
 ## Numerics and resources
 
+- [ ] Before writing simulation code, the user selected
+      `single_mpi_process` or `multi_mpi_process`.
+- [ ] `mpi_processes` and, when needed, the MPI launcher are recorded.
+- [ ] Multi-process execution does not exceed available physical cores,
+      memory, licenses, or scheduler allocation.
 - [ ] Mesh/discretization is tied to material wavelength and smallest feature.
 - [ ] PML/padding, mesh, and run-control convergence cases are proposed.
 - [ ] Runtime, memory, CPU, storage, and license limits are recorded.
@@ -44,3 +49,6 @@ Accepted by:
 
 Do not select a solver or generate a model while a material assumption that
 changes physical interpretation remains unaccepted.
+
+Do not write solver code until the MPI execution mode and process count are
+accepted at G1.

@@ -52,6 +52,9 @@ When invoked through the platform, accept
 `../schemas/v1/contracts.schema.json#/$defs/SimulationContract`, validate it
 before selecting a template, and preserve its `contract_id` and canonical hash
 in `RunManifest`.
+Before writing the PyMeep script, require G1 to confirm
+`single_mpi_process` or `multi_mpi_process` and the exact `mpi_processes`
+value. Do not silently default to serial execution.
 Establish:
 
 - physical objective and requested observables;
@@ -143,6 +146,9 @@ preflight.
 ## Phase 6: Run correctly
 
 - Register DFT/flux/near2far monitors before `run`.
+- Launch with the G1-approved MPI process count. Use the recorded MPI launcher
+  for both the smoke and production cases; do not change process count between
+  convergence cases without creating a new approved Run.
 - Broadband transient: prefer `until_after_sources=stop_when_*_decayed(...)`.
 - Harminv: run after the source and provide enough ring-down time.
 - CW: allow transients to decay or use `solve_cw` when appropriate.

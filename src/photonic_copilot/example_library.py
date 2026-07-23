@@ -1,4 +1,4 @@
-"""External, immutable example library backed by SQLite and an artifact directory."""
+"""Public example-library imports and legacy writable SQLite implementation."""
 
 from __future__ import annotations
 
@@ -29,7 +29,7 @@ def file_sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-class ExampleLibrary:
+class LegacyWritableSQLiteExampleLibrary:
     def __init__(self, root: Path, validator: ContractValidator | None = None) -> None:
         self.root = root.expanduser().resolve()
         self.artifacts_root = self.root / "artifacts"
@@ -245,3 +245,12 @@ class ExampleLibrary:
                 item["version"],
             ),
         )
+
+
+from .folder_example_library import (  # noqa: E402
+    FolderExampleLibrary,
+    LegacySQLiteExampleLibrary,
+)
+
+# Preserve the public import while making the portable folder backend the default.
+ExampleLibrary = FolderExampleLibrary

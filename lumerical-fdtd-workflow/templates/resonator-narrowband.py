@@ -11,6 +11,7 @@ import numpy as np
 from _common import (
     base_metadata,
     close_session,
+    configure_mpi_resources,
     dataset_array,
     import_lumerical_api,
     write_metadata,
@@ -30,6 +31,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--preview-only", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--mesh-accuracy", type=int, default=3)
+    parser.add_argument("--mpi-processes", type=int, default=1)
     return parser.parse_args()
 
 
@@ -122,6 +124,7 @@ def main() -> int:
     args = parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
     p = parameters(args.mesh_accuracy)
+    p["mpi_processes"] = args.mpi_processes
     project = args.output / "resonator.fsp"
     if args.dry_run:
         write_metadata(
@@ -139,6 +142,7 @@ def main() -> int:
     api, flavor = import_lumerical_api(args.api_path)
     fdtd = api.FDTD(hide=not args.show_gui)
     try:
+        configure_mpi_resources(fdtd, args.mpi_processes)
         build_model(fdtd, p)
         fdtd.save(str(project))
         if args.preview_only:

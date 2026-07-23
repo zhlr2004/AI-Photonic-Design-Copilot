@@ -148,7 +148,7 @@ class SolverAdapter(ABC):
             (run_dir / "run-manifest.json").read_text(encoding="utf-8")
         )
         command = [
-            sys.executable,
+            *self.execution_prefix(contract),
             str(script),
             "--output",
             str(run_dir / "results"),
@@ -190,6 +190,10 @@ class SolverAdapter(ABC):
                 json.dumps(run_manifest, indent=2, ensure_ascii=False) + "\n",
                 encoding="utf-8",
             )
+
+    def execution_prefix(self, contract: Mapping[str, Any]) -> list[str]:
+        del contract
+        return [sys.executable]
 
     def execution_arguments(
         self, contract: Mapping[str, Any], template_name: str
@@ -361,6 +365,16 @@ class MeepSolverAdapter(SolverAdapter):
             arguments += ["--decay-by", str(run_control.get("decay_by", 1e-6))]
         return arguments
 
+    def execution_prefix(self, contract: Mapping[str, Any]) -> list[str]:
+        resources = contract["resources"]
+        launcher = resources.get("mpi_launcher") or "mpiexec"
+        return [
+            str(launcher),
+            "-n",
+            str(resources["mpi_processes"]),
+            sys.executable,
+        ]
+
     def diagnose(self, failure: str) -> list[str]:
         return [
             "check Linux/WSL, Conda, Meep, MPI, and HDF5 imports",
@@ -419,6 +433,8 @@ class LumericalSolverAdapter(SolverAdapter):
         return [
             "--mesh-accuracy",
             str(contract["numerics"]["mesh"].get("accuracy", 2)),
+            "--mpi-processes",
+            str(contract["resources"]["mpi_processes"]),
         ]
 
     def diagnose(self, failure: str) -> list[str]:

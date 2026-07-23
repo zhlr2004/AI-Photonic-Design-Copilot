@@ -11,6 +11,17 @@ Required before model generation:
 - convergence cases are proposed;
 - assumptions that affect physical interpretation are explicitly accepted;
 - paper evidence, example suggestions, and agent assumptions remain distinct.
+- before simulation code is written, the user selects
+  `single_mpi_process` or `multi_mpi_process`;
+- the approval records the exact `mpi_processes` value and any required
+  launcher/resource configuration;
+- the approved process count does not exceed physical cores, memory, licenses,
+  or scheduler allocation.
+
+MPI topology is frozen at G1 because it affects generated launch commands,
+Lumerical resource setup, MPI-safe I/O, and reproducibility. G2 decides whether
+the already-configured code may actually run; it does not silently change MPI
+resources.
 
 ## G2 — Execution
 
@@ -32,6 +43,17 @@ Required before publishing an `ExampleManifest`:
 - every artifact exists and its supplied hash matches;
 - license and sensitivity review passes;
 - failure-labelled cases are clearly separated from default design priors.
+- a legacy/nonconforming source was only read and its before/after tree hash is
+  unchanged;
+- the published package is self-contained and all internal URIs are relative;
+- credentials, required machine-specific paths, path traversal, symlinks, and
+  case-insensitive collisions are absent;
+- the G3 decision is bound to the exact staged candidate SHA-256;
+- the target `example_id@version` does not already exist.
+
+Changing any staged file after review invalidates G3. The case must be
+revalidated and reviewed again. Cleaning tools may prepare candidates but may
+not write final version directories or catalog entries directly.
 
 An `executed` case may be archived as implementation reference. Only
 `validated` or expert-`reviewed` cases are default design baselines.
